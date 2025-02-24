@@ -1,0 +1,138 @@
+18.10.2024
+
+# Kurumsal Çalışanlar Tablosu Üzerinde SQL Sorguları  
+
+Bu dosya, **KurumsalCalısanlar** tablosu üzerinde gerçekleştirilebilecek temel SQL sorgularını içermektedir. Aşağıda, **veri seçme (SELECT), filtreleme (WHERE), karşılaştırma operatörleri, LIKE ile desen eşleme ve IN/NOT IN kullanımı** gibi SQL'in temel konularını içeren sorgular bulunmaktadır.  
+
+---
+
+## 1. Çalışanların Zamlı Maaşlarını Hesaplama  
+
+```sql
+SELECT *, Maas + Maas * 50 / 100 AS ZAMLI_MAAŞ 
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu sorgu, **Maas** sütunundaki değere %50 zam ekleyerek **ZAMLI_MAAŞ** adında yeni bir sütun oluşturur ve tüm çalışanların bilgileriyle birlikte gösterir.  
+
+---
+
+## 2. Çalışanlardan Belirli Kolonları Seçme ve İsimlendirme  
+
+```sql
+SELECT Ad, Cinsiyet, Ulke AS ÜLKE 
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+- **AS** anahtar kelimesi, sütuna yeni bir ad vermek için kullanılır. Burada **Ulke** sütunu **ÜLKE** olarak yeniden adlandırılmıştır.  
+- Bu sorgu, tüm çalışanların adlarını, cinsiyetlerini ve ülkelerini getirir.  
+
+---
+
+## 3. Belirli Bir Çalışanı Filtreleme  
+
+```sql
+SELECT * FROM KurumsalCalısanlar 
+WHERE Ad = 'Onur';
+```
+
+**Açıklama:**  
+- **WHERE** ifadesi belirli koşullara göre filtreleme yapmak için kullanılır.  
+- Bu sorgu, adı "Onur" olan çalışanları getirir.  
+
+---
+
+## 4. Türkiye Dışındaki Çalışanları Listeleme  
+
+```sql
+SELECT * FROM KurumsalCalısanlar 
+WHERE Ulke <> 'Türkiye';
+```
+
+**Açıklama:**  
+- **<>** operatörü, **eşit değildir** anlamına gelir.  
+- Alternatif olarak **!=** de kullanılabilir.  
+- Bu sorgu, Türkiye dışında çalışan kişileri listeler.  
+
+---
+
+## 5. Maaşı Belirli Bir Aralıkta Olan Çalışanları Getirme  
+
+```sql
+SELECT * FROM KurumsalCalısanlar 
+WHERE Maas BETWEEN 5000 AND 9000;
+```
+
+**Açıklama:**  
+- **BETWEEN … AND …** ifadesi, iki değer arasındaki sonuçları filtrelemek için kullanılır.  
+- Bu sorgu, maaşı **5000 ile 9000 arasında** olan çalışanları listeler.  
+
+---
+
+## 6. Belirli Ülkelerde Çalışanları Listeleme  
+
+```sql
+SELECT * FROM KurumsalCalısanlar 
+WHERE ULKE IN ('Türkiye', 'Fransa', 'Amerika');
+```
+
+**Açıklama:**  
+- **IN** ifadesi, **OR** operatörünün daha kısa ve okunaklı bir alternatifidir.  
+- Alternatif olarak şu şekilde de yazılabilir:  
+
+  ```sql
+  SELECT * FROM KurumsalCalısanlar 
+  WHERE ULKE = 'Türkiye' OR Ulke = 'Fransa' OR Ulke = 'Amerika';
+  ```
+- Her iki sorgu da Türkiye, Fransa veya Amerika'da çalışanları listeler.  
+
+---
+
+## 7. LIKE Operatörü ile Metin Arama  
+
+```sql
+SELECT * FROM KurumsalCalısanlar 
+WHERE Ad LIKE 'O%';
+```
+
+**Açıklama:**  
+- **LIKE** ifadesi, belirli bir desene uyan verileri getirmek için kullanılır.  
+- **'O%'** ifadesi, "O" harfiyle başlayan tüm çalışanları getirir.  
+- Alternatif kullanımlar:  
+  - **'%T'** → "T" harfiyle biten çalışanları getirir.  
+  - **'%U%'** → Adının içinde "U" harfi geçen çalışanları getirir.  
+  - **'____'** → 4 harfli isimlere sahip çalışanları getirir.  
+
+---
+
+## 8. Belirli Bir Doğum Tarihine Sahip Çalışanları Listeleme  
+
+```sql
+SELECT * FROM KurumsalCalısanlar 
+WHERE DT = '1990-09-16';
+```
+
+**Açıklama:**  
+- **DT** sütununda doğum tarihi **1990-09-16** olan çalışanları getirir.  
+- Eğer belirli bir yıl içindeki tüm doğum tarihlerini listelemek istersek:  
+
+  ```sql
+  SELECT * FROM KurumsalCalısanlar 
+  WHERE DT LIKE '1985%';
+  ```
+  - **'1985%'** → 1985 yılında doğan tüm çalışanları getirir.  
+
+---
+
+## 9. Cinsiyet, Ülke ve Maaş Koşullarını Birlikte Kullanma  
+
+```sql
+SELECT * FROM KurumsalCalısanlar 
+WHERE Ulke = 'Türkiye' AND Cinsiyet = 'Erkek' AND Maas > 4000;
+```
+
+**Açıklama:**  
+- **AND** operatörü, tüm koşulların sağlandığı satırları getirir.  
+- Bu sorgu, Türkiye’de çalışan, erkek olan ve maaşı **4000’den fazla** olan çalışanları listeler.  
