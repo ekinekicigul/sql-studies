@@ -136,3 +136,89 @@ WHERE Ulke = 'Türkiye' AND Cinsiyet = 'Erkek' AND Maas > 4000;
 **Açıklama:**  
 - **AND** operatörü, tüm koşulların sağlandığı satırları getirir.  
 - Bu sorgu, Türkiye’de çalışan, erkek olan ve maaşı **4000’den fazla** olan çalışanları listeler.  
+
+
+
+22.10.2024
+
+
+
+## 1. Türkiye'deki Kadın Çalışanları Listeleme  
+
+```sql
+SELECT *  
+FROM KurumsalCalısanlar  
+WHERE Cinsiyet = 'Kadin' AND Ulke = 'Türkiye';  
+```
+
+**Açıklama:**  
+Bu sorgu, **Türkiye'deki kadın çalışanları** listelemek için **WHERE** koşulunu kullanır.
+
+---
+
+
+## 2. Ad, Cinsiyet ve Ülke Bilgilerini '-' Karakteri ile Birleştirme  
+
+```sql
+SELECT *,  
+Ad + '-' + Cinsiyet AS Ad_Cinsiyet,  
+CONCAT_WS('-', Ad, Ulke, Cinsiyet) AS Bilgiler  
+FROM KurumsalCalısanlar;  
+```
+
+**Açıklama:**  
+- **+** operatörü ile **Ad** ve **Cinsiyet** sütunları birleştirilerek **Ad_Cinsiyet** adıyla yeni bir sütun oluşturulmuştur.
+- **CONCAT_WS** fonksiyonu, farklı sütunları belirli bir ayraç ile birleştirmek için kullanılmıştır.
+
+---
+
+
+## 3. İsimlerin İlk ve Son Harflerini Seçme  
+
+```sql
+SELECT *,  
+LEFT(Ad, 1) AS Ilk_Harf,  
+RIGHT(Ad, 1) AS Son_Harf  
+FROM KurumsalCalısanlar;  
+```
+
+**Açıklama:**  
+- **LEFT(Ad, 1)** fonksiyonu, adın ilk harfini döndürür.
+- **RIGHT(Ad, 1)** fonksiyonu, adın son harfini döndürür.
+
+---
+
+## 4. Nisan Ayında Doğanları Listeleme  
+
+```sql
+SELECT *,  
+FORMAT(DT, 'MMMM', 'TR-TR') AS Ay  
+FROM KurumsalCalısanlar  
+WHERE FORMAT(DT, 'MMMM', 'TR-TR') = 'Nisan';  
+```
+
+**Açıklama:**  
+Bu sorgu, **DT** (doğum tarihi) sütunundan ay bilgisini çıkararak **Nisan** ayında doğanları listelemektedir.
+
+---
+
+## 5. 1985 Yılında Doğanları Listeleme  
+
+**Yöntem 1: BETWEEN Kullanımı**
+```sql
+SELECT *  
+FROM KurumsalCalısanlar  
+WHERE DT BETWEEN '1985-01-01' AND '1985-12-31';  
+```
+
+**Yöntem 2: YEAR Fonksiyonu Kullanımı**
+```sql
+SELECT *  
+FROM KurumsalCalısanlar  
+WHERE YEAR(DT) = 1985;  
+```
+
+**Açıklama:**  
+- **BETWEEN** kullanımı, belirli bir yıl aralığında olan doğum tarihlerini seçer.
+- **YEAR(DT) = 1985** ifadesi, doğum yılını doğrudan filtrelemek için kullanılır.
+
