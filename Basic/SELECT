@@ -222,3 +222,138 @@ WHERE YEAR(DT) = 1985;
 - **BETWEEN** kullanımı, belirli bir yıl aralığında olan doğum tarihlerini seçer.
 - **YEAR(DT) = 1985** ifadesi, doğum yılını doğrudan filtrelemek için kullanılır.
 
+
+31.10.2024
+
+
+## 1. İsmi 4 Karakterden Oluşan Çalışanlar  
+
+```sql
+SELECT * 
+FROM KurumsalCalısanlar
+WHERE ad LIKE '____';
+```
+
+**Açıklama:**  
+Bu sorgu, ismi **tam olarak 4 karakter uzunluğunda** olan çalışanları listeler. **_ (alt çizgi)** karakteri, her biri **tek bir harfi temsil edecek şekilde** kullanılmıştır.  
+
+---
+
+## 2. Maaşa Göre Kategorilendirme  
+
+```sql
+SELECT *,
+CASE
+    WHEN maas BETWEEN 0 AND 3000 THEN 'Düşük Maaş'
+    WHEN maas BETWEEN 3001 AND 5000 THEN 'Orta Maaş'
+    WHEN maas > 5000 THEN 'Yüksek Maaş'
+    ELSE 'Geçersiz Maaş Değeri'
+END AS Maaş_Kategorisi
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu sorgu, çalışanların maaşlarını **düşük, orta ve yüksek** maaş olarak kategorilendirir. **CASE** ifadesi, koşullu veri manipülasyonu yapmak için kullanılmıştır.  
+
+---
+
+## 3. Çalışanları Doğum Yıllarına Göre Kategorize Etme  
+
+```sql
+SELECT *,
+CASE
+    WHEN YEAR(DT) <= 1985 THEN 'Yaşlı'
+    WHEN YEAR(DT) BETWEEN 1986 AND 1996 THEN 'Genç'
+    ELSE 'Çok Genç'
+END AS Yas_Kategorisi
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu sorgu, çalışanları **doğum yıllarına göre yaşlı, genç ve çok genç** olarak kategorize eder. **YEAR()** fonksiyonu ile doğum tarihinin yılı alınır.  
+
+---
+
+## 4. Yaşlı Çalışanları Listeleme  
+
+```sql
+SELECT *
+FROM (
+    SELECT *,
+    CASE
+        WHEN YEAR(DT) <= 1985 THEN 'Yaşlı'
+        WHEN YEAR(DT) BETWEEN 1986 AND 1996 THEN 'Genç'
+        ELSE 'Çok Genç'
+    END AS Yas_Kategorisi
+    FROM KurumsalCalısanlar
+) AS Yasli_Calisanlar
+WHERE Yas_Kategorisi = 'Yaşlı';
+```
+
+**Açıklama:**  
+İç içe geçmiş **SELECT (Subquery)** yapısı kullanılarak, önce **Yaş Kategorisi** sütunu eklenmiş, ardından sadece **'Yaşlı'** kategorisine giren çalışanlar filtrelenmiştir.  
+
+---
+
+## 5. Yeni Bir Tablo Oluşturma ve Veri Ekleme  
+
+```sql
+CREATE TABLE KURS (
+  Ogrenci_No INT PRIMARY KEY IDENTITY(1000,10),
+  Ad VARCHAR(MAX),
+  Yas TINYINT CHECK(Yas >= 0 AND Yas <= 105),
+  Sehir VARCHAR(MAX) DEFAULT 'İzmir',
+  TCKN BIGINT UNIQUE 
+);
+```
+
+```sql
+INSERT INTO KURS (Ad, Yas, Sehir, TCKN) VALUES
+('Gamze', 24, 'İstanbul', 4000),
+('Nursema', 24, 'İstanbul', 4001);
+```
+
+**Açıklama:**  
+- **CREATE TABLE** komutu ile **KURS** adında yeni bir tablo oluşturulmuştur.  
+- **IDENTITY(1000,10)**, öğrenci numarasının **1000'den başlayarak 10'ar artmasını** sağlar.  
+- **CHECK** ifadesi, yaşın **0 ile 105 arasında olması gerektiğini** belirler.  
+- **DEFAULT 'İzmir'**, şehir belirtilmediğinde varsayılan olarak **'İzmir'** değerinin atanmasını sağlar.  
+- **INSERT INTO** komutu ile tabloya **iki yeni öğrenci eklenmiştir.**  
+
+---
+
+## 6. Kişi Tablosu Üzerinde Veri Güncelleme  
+
+```sql
+CREATE TABLE Kisi (
+  ID INT PRIMARY KEY IDENTITY(1,1),
+  Isim VARCHAR(MAX)
+);
+```
+
+```sql
+INSERT INTO Kisi (Isim) VALUES
+('Hasan'),
+('Berke'),
+('Gül');
+```
+
+```sql
+UPDATE Kisi
+SET Isim = 'Hasancan'
+WHERE ID = 1;
+
+UPDATE Kisi
+SET Isim = 'Berkecan'
+WHERE ID = 2;
+
+UPDATE Kisi
+SET Isim = 'Gülcan'
+WHERE ID = 3;
+```
+
+**Açıklama:**  
+- **CREATE TABLE** ile **Kisi** tablosu oluşturulmuştur.  
+- **INSERT INTO** ile tabloya **üç kişi eklenmiştir.**  
+- **UPDATE** komutları ile isimler değiştirilmiştir. 
+
