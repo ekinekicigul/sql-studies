@@ -357,3 +357,138 @@ WHERE ID = 3;
 - **INSERT INTO** ile tabloya **üç kişi eklenmiştir.**  
 - **UPDATE** komutları ile isimler değiştirilmiştir. 
 
+
+
+08.11.2024
+
+# AdventureWorks Person.Person Tablosu Üzerinde SQL Sorguları
+
+Bu dosya, **AdventureWorks** veritabanındaki **Person.Person** ve **KurumsalCalısanlar** tabloları üzerinde gerçekleştirilebilecek SQL sorgularını içermektedir. **Veri seçme (SELECT), filtreleme (WHERE), gruplama (GROUP BY), koşullu filtreleme (HAVING) ve tarih fonksiyonları** gibi konulara odaklanılmıştır.
+
+---
+
+## 1. Title Sütunundaki Null ve Tekrar Eden Değerleri İnceleme
+
+```sql
+SELECT 
+    COUNT(*) AS SATIR_SAYISI,
+    COUNT(Title) AS DOLU_TITLE_SAYISI,
+    COUNT(DISTINCT Title) AS TEKIL_TITLE_SAYISI
+FROM Person.Person;
+```
+
+**Açıklama:**
+Bu sorgu, **Person.Person** tablosundaki **Title** sütununun null değer içerip içermediğini ve kaç farklı başlık olduğunu analiz eder.
+
+---
+
+# Kurumsal Çalışanlar Tablosu Üzerinde SQL Sorguları
+
+## 2. Maaşlar Üzerinde İstatistiksel Hesaplamalar
+
+```sql
+SELECT 
+    SUM(MAAS) AS TOPLAM,
+    AVG(MAAS) AS ORT,
+    MAX(MAAS) AS MAK_MAAS,
+    MIN(MAAS) AS MIN_MAAS,
+    COUNT(*) AS SATIR_SAYISI,
+    COUNT(ID) AS KISI_ADEDI,
+    COUNT(DISTINCT ID) AS TEKIL_ID_SAYISI
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**
+Bu sorgu, çalışanların maaşlarının toplamını, ortalamasını, maksimum ve minimum maaşlarını hesaplar. **COUNT(ID)** ve **COUNT(DISTINCT ID)** kullanarak çalışanların sayısı ve tekil çalışan sayısı belirlenir.
+
+---
+
+## 3. Ülkelerdeki Çalışan Sayısı ve Maaş Dağılımı
+
+```sql
+SELECT 
+    ulke,
+    SUM(maas) AS TOPLAM_MAAS,
+    AVG(maas) AS ORTALAMA_MAAS,
+    MAX(maas) AS MAKSIMUM_MAAS,
+    MIN(maas) AS MINIMUM_MAAS,
+    COUNT(id) AS CALISAN_SAYISI
+FROM KurumsalCalısanlar
+GROUP BY ulke;
+```
+
+**Açıklama:**
+Bu sorgu, **ülke bazında çalışan sayısını** ve maaş istatistiklerini gösterir. **GROUP BY ulke** ile her ülke için ayrı hesaplama yapılır.
+
+---
+
+## 4. Doğum Yılı Bazında Çalışan Sayıları
+
+```sql
+SELECT 
+    YEAR(dt) AS DOGUM_YILI,
+    COUNT(id) AS CALISAN_SAYISI
+FROM KurumsalCalısanlar
+GROUP BY YEAR(dt);
+```
+
+**Açıklama:**
+Bu sorgu, çalışanları **doğum yıllarına göre gruplar** ve her yıl kaç çalışan olduğunu gösterir.
+
+---
+
+## 5. Maaş Toplamı 10.000 TL'den Büyük Olan Ülkeleri Filtreleme
+
+```sql
+SELECT 
+    ulke,
+    SUM(maas) AS TOPLAM_MAAS
+FROM KurumsalCalısanlar
+GROUP BY ulke
+HAVING SUM(maas) > 10000;
+```
+
+**Açıklama:**
+Bu sorgu, **maaş toplamı 10.000 TL’den büyük olan ülkeleri filtreler**. **HAVING** ifadesi, gruplama yapıldıktan sonra filtreleme işlemi için kullanılır.
+
+---
+
+## 6. Tecrübe Yılına Göre Maaş Ortalaması ve Çalışan Sayısı
+
+```sql
+SELECT 
+    DATEDIFF(YEAR, ise_giris_tarihi, '2024-08-11') AS TECRUBE_YILI,
+    AVG(maas) AS ORTALAMA_MAAS,
+    COUNT(id) AS CALISAN_SAYISI
+FROM KurumsalCalısanlar
+GROUP BY DATEDIFF(YEAR, ise_giris_tarihi, '2024-08-11');
+```
+
+**Açıklama:**
+Bu sorgu, **çalışanların tecrübe yıllarına göre ortalama maaşlarını ve çalışan sayılarını hesaplar.**
+
+---
+
+## 7. Türkiye’deki Toplam Maaş Hesaplaması
+
+**1. Yöntem (WHERE Kullanımı)**
+```sql
+SELECT ulke, SUM(maas) AS TOPLAM_MAAS 
+FROM KurumsalCalısanlar
+WHERE ulke = 'Türkiye'
+GROUP BY ulke;
+```
+
+**2. Yöntem (HAVING Kullanımı)**
+```sql
+SELECT ulke, SUM(maas) AS TOPLAM_MAAS 
+FROM KurumsalCalısanlar
+GROUP BY ulke
+HAVING ulke = 'Türkiye';
+```
+
+**Açıklama:**
+- **WHERE** ham veriyi filtreler ve gruplamadan önce kullanılır. **Daha hızlı çalışır.**
+- **HAVING** gruplandıktan sonra filtreleme yapar. **Gruplanmış veri üzerinde işlem yaparken kullanılır.**
+
+
