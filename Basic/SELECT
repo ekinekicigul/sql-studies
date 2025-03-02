@@ -492,3 +492,170 @@ HAVING ulke = 'Türkiye';
 - **HAVING** gruplandıktan sonra filtreleme yapar. **Gruplanmış veri üzerinde işlem yaparken kullanılır.**
 
 
+12.11.2024
+
+
+## 1. Ülkeye Göre Maaş Toplamı ve Ortalaması  
+
+```sql
+SELECT 
+    ulke, 
+    SUM(maas) AS toplam_maas, 
+    AVG(maas) AS ortalama_maas
+FROM KurumsalCalısanlar
+GROUP BY ulke;
+```
+
+**Açıklama:**  
+Bu sorgu, **ülke bazında maaş toplamını ve ortalamasını hesaplar**. **GROUP BY** ifadesi sayesinde her ülke için ayrı bir satır oluşturulur.
+
+---
+
+## 2. Ülkeye Göre Maaş Toplamı ve Çalışan Sayısı  
+
+```sql
+SELECT 
+    ulke, 
+    SUM(maas) AS toplam_maas, 
+    COUNT(id) AS calisan_sayisi
+FROM KurumsalCalısanlar
+GROUP BY ulke;
+```
+
+**Açıklama:**  
+Bu sorgu, her ülke için **toplam maaş miktarını ve çalışan sayısını hesaplar**.
+
+---
+
+## 3. Doğum Yılı Bazında Çalışan Sayısı  
+
+```sql
+SELECT 
+    YEAR(dt) AS dogum_yili, 
+    COUNT(id) AS kisi_sayisi
+FROM KurumsalCalısanlar
+GROUP BY YEAR(dt);
+```
+
+**Açıklama:**  
+Çalışanların **doğum yılı bazında kaç kişi olduğunu** hesaplar.
+
+---
+
+## 4. Maaş Kategorilerine Göre Çalışan Sayısı  
+
+```sql
+SELECT 
+    CASE
+        WHEN Maas <= 3000 THEN 'DÜŞÜK'
+        WHEN Maas BETWEEN 3001 AND 5000 THEN 'ORTA'
+        ELSE 'YÜKSEK'
+    END AS maas_kategori, 
+    COUNT(ID) AS kisi_sayisi
+FROM KurumsalCalısanlar
+GROUP BY 
+    CASE
+        WHEN Maas <= 3000 THEN 'DÜŞÜK'
+        WHEN Maas BETWEEN 3001 AND 5000 THEN 'ORTA'
+        ELSE 'YÜKSEK'
+    END;
+```
+
+**Açıklama:**  
+Bu sorgu, çalışanları **maaş aralıklarına göre** gruplandırarak her kategori için kaç kişi olduğunu gösterir.
+
+---
+
+## 5. Doğum Ayı Bazında Çalışan Sayısı  
+
+```sql
+SELECT 
+    FORMAT(dt, 'MMMM', 'TR-TR') AS ay_adi, 
+    COUNT(id) AS kisi_sayisi
+FROM KurumsalCalısanlar
+GROUP BY FORMAT(dt, 'MMMM', 'TR-TR');
+```
+
+**Açıklama:**  
+Çalışanların **doğum ayına göre kaç kişi olduğunu hesaplar**.
+
+---
+
+## 6. En Yüksek Maaşı Alan Çalışan(lar)  
+
+```sql
+SELECT TOP 1 WITH TIES * FROM KurumsalCalısanlar
+ORDER BY maas DESC;
+```
+
+**Açıklama:**  
+Bu sorgu, en yüksek maaşı alan **tüm çalışanları listeler**. **WITH TIES** kullanıldığı için birden fazla çalışan aynı maaşı alıyorsa hepsi gösterilir.
+
+---
+
+## 7. Ortalama Maaştan Yüksek Maaş Alan Çalışanlar  
+
+```sql
+SELECT * FROM KurumsalCalısanlar
+WHERE maas >= (SELECT AVG(maas) FROM KurumsalCalısanlar);
+```
+
+**Açıklama:**  
+Bu sorgu, **ortalama maaştan yüksek maaş alan çalışanları** listeler.
+
+---
+
+## 8. Maaş Toplamı 10.000'den Büyük Olan Ülkeler  
+
+```sql
+SELECT ulke, SUM(maas) AS toplam_maas 
+FROM KurumsalCalısanlar
+GROUP BY ulke
+HAVING SUM(maas) > 10000;
+```
+
+**Açıklama:**  
+Bu sorgu, **maaş toplamı 10.000'den büyük olan ülkeleri filtreler**.
+
+---
+
+## 9. Türkiye’deki Erkek Çalışanlar ve Maaşlarına Göre Sıralama  
+
+```sql
+SELECT * FROM KurumsalCalısanlar
+WHERE ulke = 'Türkiye' AND cinsiyet = 'Erkek'
+ORDER BY maas DESC;
+```
+
+**Açıklama:**  
+Bu sorgu, **sadece Türkiye'deki erkek çalışanları getirir** ve maaşlarına göre **büyükten küçüğe sıralar**.
+
+---
+
+## 10. Çalışanların Maaşının Ortalama Maaşa Olan Farkı  
+
+```sql
+SELECT *, 
+    (SELECT AVG(maas) FROM KurumsalCalısanlar) AS genel_ort, 
+    maas - (SELECT AVG(maas) FROM KurumsalCalısanlar) AS ortalama_uzaklik 
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu sorgu, her çalışanın maaşının **ortalama maaşa olan farkını hesaplar**.
+
+---
+
+## 11. Çalışanların Doğum Tarihi ve İşe Giriş Tarihi Arasındaki Gün Farkı  
+
+```sql
+SELECT *, 
+    DATEDIFF(DAY, dt, Is_Giris_Tarihi) AS fark_gun
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu sorgu, her çalışan için **doğum tarihi ile işe giriş tarihi arasındaki farkı gün cinsinden hesaplar**.
+
+---
+
