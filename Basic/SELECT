@@ -659,3 +659,163 @@ Bu sorgu, her çalışan için **doğum tarihi ile işe giriş tarihi arasındak
 
 ---
 
+
+13.11.2024
+
+
+## 1. En Düşük Maaşı Alan Personel veya Personeller  
+
+```sql
+SELECT TOP 1 WITH TIES * FROM KurumsalCalısanlar
+ORDER BY maas;
+```
+
+**Açıklama:**  
+Bu sorgu, en düşük maaşı alan tüm personelleri listeler. Eğer birden fazla kişi aynı en düşük maaşı alıyorsa, **WITH TIES** kullanımı sayesinde hepsi getirilir.  
+
+---
+
+## 2. En Yüksek Maaşı Alan Kişinin Bilgilerini Alt Sorgu ile Getirme  
+
+```sql
+SELECT TOP 1 WITH TIES * FROM KurumsalCalısanlar
+ORDER BY maas DESC;
+```
+
+**Açıklama:**  
+Bu sorgu, en yüksek maaşı alan çalışan(lar)ı getirir. **WITH TIES** ile, eğer birden fazla kişi en yüksek maaşı alıyorsa, hepsi görüntülenir.  
+
+---
+
+## 3. Herkesin Maaşını Ortalama Maaştan Çıkartma  
+
+```sql
+SELECT  
+*,
+(SELECT AVG(maas) FROM KurumsalCalısanlar) AS genel_ortalama,
+maas - (SELECT AVG(maas) FROM KurumsalCalısanlar) AS ortalama_uzaklık 
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu sorgu, her çalışanın maaşını **ortalama maaştan çıkartarak** farkını hesaplar ve yeni bir sütunda gösterir.  
+
+---
+
+## 4. Cinsiyet Bazında Ortalama Maaş Hesaplama  
+
+```sql
+SELECT cinsiyet, AVG(maas) AS ortalama_maas 
+FROM KurumsalCalısanlar
+GROUP BY cinsiyet;
+```
+
+**Açıklama:**  
+Bu sorgu, **cinsiyete göre gruplama yaparak** her cinsiyet için ortalama maaşı hesaplar. **GROUP BY** kullanımı ham veriyi gruplar ve özetler.  
+
+---
+
+## 5. Her Personelin Kendi Cinsiyet Grubundaki Maaş Ortalamasına Olan Uzaklığı  
+
+### Yöntem 1 (Alt Sorgular ile)  
+```sql
+SELECT *,
+CASE
+    WHEN Cinsiyet = 'Erkek' THEN (SELECT AVG(MAAS) FROM KurumsalCalısanlar WHERE Cinsiyet = 'Erkek')
+    ELSE (SELECT AVG(MAAS) FROM KurumsalCalısanlar WHERE Cinsiyet = 'Kadın')
+END AS cinsiyet_ortalaması,
+(SELECT AVG(MAAS) FROM KurumsalCalısanlar) AS genel_ortalama
+FROM KurumsalCalısanlar;
+```
+
+### Yöntem 2 (Window Fonksiyonları ile - Daha Performanslı)  
+```sql
+SELECT
+*,
+AVG(maas) OVER() AS genel_ortalama,
+AVG(maas) OVER(PARTITION BY cinsiyet) AS cinsiyet_bazlı_ort,
+AVG(maas) OVER(PARTITION BY ulke) AS ulke_bazlı_ort,
+SUM(maas) OVER(PARTITION BY ulke) AS ulke_bazlı_toplam,
+COUNT(id) OVER(PARTITION BY cinsiyet) AS cinsiyet_bazlı_say,
+MAX(maas) OVER() AS en_yüksek_maas,
+MAX(maas) OVER(PARTITION BY cinsiyet) AS cinsiyet_bazlı_max,
+MIN(maas) OVER(PARTITION BY cinsiyet) AS cinsiyet_bazlı_min
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+- **PARTITION BY** kullanımı, her satır için **grup bazlı** hesaplama yapar.  
+- **AVG() OVER()** kullanımı, genel ve grup bazlı ortalamaları bozmadan yeni sütunlara ekler.  
+
+---
+
+## 6. En Yüksek Maaşı Alan Kişinin Adını Yeni Sütunda Yazdırma  
+
+### Yöntem 1 (Alt Sorgu - Performans Açısından Problemli)  
+```sql
+SELECT *,
+(SELECT ad FROM KurumsalCalısanlar WHERE maas = (SELECT MAX(maas) FROM KurumsalCalısanlar)) AS en_yüksek_maas_kisi
+FROM KurumsalCalısanlar;
+```
+
+### Yöntem 2 (FIRST_VALUE Fonksiyonu ile - Daha Performanslı)  
+```sql
+SELECT *,
+FIRST_VALUE(ad) OVER(ORDER BY maas DESC) AS en_yüksek_maas_kisi,
+FIRST_VALUE(ad) OVER(PARTITION BY cinsiyet ORDER BY maas DESC) AS cinsiyet_bazlı_en_yüksek,
+FIRST_VALUE(ad) OVER(PARTITION BY ulke ORDER BY maas DESC) AS ulke_bazlı_en_yüksek
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+- **FIRST_VALUE()** kullanımı, belirli bir sıralama içerisinde **ilk değeri alır.**  
+
+---
+
+## 7. View (Sanal Tablo) Oluşturma  
+
+```sql
+CREATE VIEW Ekin AS
+SELECT *,
+CASE
+    WHEN ulke IN ('Estonya','Fransa') THEN 'AVRUPA'
+    WHEN ulke IN ('Türkiye','Rusya') THEN 'ASYA'
+    ELSE 'AMERİKA'
+END AS Kıta
+FROM KurumsalCalısanlar;
+```
+
+```sql
+SELECT * FROM Ekin;
+```
+
+**Açıklama:**  
+- **VIEW**, bir sorgu sonucunu **sanal bir tablo** gibi saklar.  
+- **ALTER VIEW** ile var olan bir görünüm güncellenebilir, **DROP VIEW** ile silinebilir.  
+
+---
+
+## 8. İşe Giriş Tarihi ve Doğum Tarihi Arasındaki Gün Farkı  
+
+```sql
+SELECT *, DATEDIFF(day, DT, İşe_Giriş_Tarihi) AS fark_gun 
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu sorgu, **DATEDIFF()** fonksiyonunu kullanarak doğum tarihi (**DT**) ile işe giriş tarihi (**İşe_Giriş_Tarihi**) arasındaki farkı gün cinsinden hesaplar.  
+
+---
+
+## 9. Ad, Cinsiyet ve Ülke Kolonlarını Birleştirerek Yeni Bir Sütun Oluşturma  
+
+```sql
+SELECT *, CONCAT_WS('-', Ad, Ulke, Cinsiyet) AS kimlik_bilgisi
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+- **CONCAT_WS()** kullanılarak, **Ad, Ulke ve Cinsiyet** sütunları arasına "-" karakteri eklenerek birleştirilir.  
+
+---
+
