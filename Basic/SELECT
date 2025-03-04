@@ -819,3 +819,217 @@ FROM KurumsalCalısanlar;
 
 ---
 
+
+21.11.2024
+
+## 1. Tarih ve Metin Fonksiyonları  
+
+```sql
+SELECT *, FORMAT(DT, 'MMMM', 'TR-TR') AS AY_ADI, LEFT(Ad, 1) AS ILK_HARF 
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu sorgu, DT (tarih) sütununu **ay adı** olarak biçimlendirir ve **Ad** sütunundaki isimlerin ilk harfini alarak yeni bir sütunda gösterir.  
+
+---
+
+## 2. Çalışan Maaşlarına Zam Uygulama  
+
+```sql
+SELECT *, Maas + Maas * 0.50 AS ZAMLI_MAAŞ 
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu sorgu, **Maas** sütunundaki değere %50 zam ekleyerek yeni bir sütun oluşturur.  
+
+---
+
+## 3. Kendi Fonksiyonlarımızı Tanımlama  
+
+**Örnek 1: Zam Hesaplayan Fonksiyon**  
+
+```sql
+CREATE FUNCTION ZAM (@SayısalSütun INT, @ZamOranı DEC(3,2))
+RETURNS DEC(10,2)
+AS
+BEGIN
+    RETURN @SayısalSütun + @SayısalSütun * @ZamOranı;
+END;
+```
+
+```sql
+SELECT *, dbo.ZAM(Maas, 0.50) AS YENI_MAAS 
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu fonksiyon, girilen maaşa verilen oran kadar zam ekleyerek yeni bir maaş değeri döndürür.  
+
+---
+
+## 4. Metin Birleştirme Fonksiyonu  
+
+```sql
+CREATE FUNCTION BIRLESTIR (@Metin1 VARCHAR(MAX), @Metin2 VARCHAR(MAX))
+RETURNS VARCHAR(MAX)
+AS
+BEGIN
+    RETURN @Metin1 + '-' + @Metin2;
+END;
+```
+
+```sql
+SELECT *, dbo.BIRLESTIR(Ad, Ulke) AS AD_ULKE 
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu fonksiyon, iki metni **-** işareti ile birleştirerek yeni bir sütun oluşturur.  
+
+---
+
+## 5. Belirli Bir Ayı Dönüştüren Fonksiyon  
+
+```sql
+CREATE FUNCTION AY (@Tarih DATE)
+RETURNS VARCHAR(MAX)
+AS
+BEGIN
+    RETURN FORMAT(@Tarih, 'MMMM', 'TR-TR');
+END;
+```
+
+```sql
+SELECT *, dbo.AY(DT) AS AY_ADI 
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Bu fonksiyon, tarih verisinin sadece **ay adını** döndürmesini sağlar.  
+
+---
+
+## 6. Maaş Kategorilerine Göre Çalışanları Gruplama (View Kullanımı)  
+
+```sql
+CREATE VIEW EKO AS
+SELECT *,
+    CASE
+        WHEN Maas BETWEEN 0 AND 3000 THEN 'DÜŞÜK'
+        WHEN Maas BETWEEN 3001 AND 5000 THEN 'ORTA'
+        ELSE 'YÜKSEK'
+    END AS MAAS_KATEGORISI
+FROM KurumsalCalısanlar;
+```
+
+```sql
+SELECT * FROM EKO;
+```
+
+**Açıklama:**  
+Bu **VIEW**, maaş değerine göre çalışanları **düşük, orta ve yüksek** şeklinde kategorize eder.  
+
+---
+
+## 7. Ülkeye Göre Çalışanları Listeleyen Fonksiyon  
+
+```sql
+CREATE FUNCTION ULKE_BAZLI (@Ulke VARCHAR(MAX))
+RETURNS TABLE
+AS
+RETURN
+SELECT * FROM KurumsalCalısanlar WHERE Ulke = @Ulke;
+```
+
+```sql
+SELECT * FROM dbo.ULKE_BAZLI('Türkiye');
+```
+
+**Açıklama:**  
+Bu fonksiyon, girilen ülke adına göre çalışanları döndürür.  
+
+---
+
+## 8. Doğum Yılına Göre Çalışanları Getiren Fonksiyon  
+
+```sql
+CREATE FUNCTION DOGUM_TARIHI (@dt INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT * FROM KurumsalCalısanlar WHERE YEAR(DT) = @dt;
+```
+
+```sql
+SELECT * FROM dbo.DOGUM_TARIHI(1985);
+```
+
+**Açıklama:**  
+Bu fonksiyon, verilen doğum yılına göre çalışanları getirir.  
+
+---
+
+## 9. Saklı Prosedür (Stored Procedure) Kullanımı  
+
+**Parametresiz Stored Procedure:**  
+
+```sql
+CREATE PROC TURKIYE_CALISANLARI AS
+BEGIN
+    SELECT * FROM KurumsalCalısanlar WHERE Ulke = 'Türkiye';
+END;
+```
+
+```sql
+EXEC TURKIYE_CALISANLARI;
+```
+
+**Açıklama:**  
+Bu prosedür, Türkiye'de çalışanları listeleyen bir sorguyu çalıştırır.  
+
+**Parametreli Stored Procedure:**  
+
+```sql
+CREATE PROC ULKE_CALISANLARI (@Ulke VARCHAR(MAX))
+AS
+BEGIN
+    SELECT * FROM KurumsalCalısanlar WHERE Ulke = @Ulke;
+END;
+```
+
+```sql
+EXEC ULKE_CALISANLARI 'Türkiye';
+```
+
+**Açıklama:**  
+Bu prosedür, girilen ülkeye göre çalışanları listeleyen bir SQL sorgusunu çalıştırır.  
+
+---
+
+## 10. Döngüler Kullanarak Veri Eklemek  
+
+```sql
+CREATE TABLE Numbers (Sayi INT);
+```
+
+```sql
+DECLARE @Sayi INT;
+SET @Sayi = 1;
+
+WHILE @Sayi <= 10000
+BEGIN
+    INSERT INTO Numbers VALUES (@Sayi);
+    SET @Sayi = @Sayi + 1;
+END;
+```
+
+```sql
+SELECT * FROM Numbers;
+```
+
+**Açıklama:**  
+Bu SQL döngüsü, **1'den 10.000'e kadar** olan sayıları Numbers tablosuna ekler.  
+
+---
