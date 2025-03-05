@@ -1033,3 +1033,142 @@ SELECT * FROM Numbers;
 Bu SQL döngüsü, **1'den 10.000'e kadar** olan sayıları Numbers tablosuna ekler.  
 
 ---
+
+
+
+22.11.2024
+
+
+## 1. Türkiye ve Fransa'daki Çalışanları Listeleme  
+
+```sql
+SELECT *
+FROM KurumsalCalısanlar
+WHERE ulke IN ('Türkiye', 'Fransa');
+```
+
+**Açıklama:**  
+Türkiye veya Fransa'da çalışan personelleri getirir.  
+
+---
+
+## 2. En Yüksek Maaşı Alan Çalışanları Listeleme  
+
+**Yöntem 1: `TOP` Kullanımı**  
+
+```sql
+SELECT TOP 1 WITH TIES *
+FROM KurumsalCalısanlar
+ORDER BY maas DESC;
+```
+
+**Yöntem 2: Alt Sorgu Kullanımı**  
+
+```sql
+SELECT *
+FROM KurumsalCalısanlar
+WHERE maas = (SELECT MAX(maas) FROM KurumsalCalısanlar);
+```
+
+**Açıklama:**  
+Bu iki sorgu da en yüksek maaşı alan çalışanları getirir. İlk yöntem `TOP 1 WITH TIES` ile en yüksek maaşı paylaşan tüm çalışanları listeler. İkinci yöntem ise alt sorgu ile en yüksek maaşı bulup ona eşit olan tüm satırları getirir.  
+
+---
+
+## 3. Maaşı 5000 ile 8500 Arasında Olan Çalışanları Sıralama  
+
+```sql
+SELECT *
+FROM KurumsalCalısanlar
+WHERE maas BETWEEN 5000 AND 8500
+ORDER BY maas DESC;
+```
+
+**Açıklama:**  
+Maaşı 5000 ile 8500 arasında olan çalışanları filtreler ve maaşlarına göre büyükten küçüğe sıralar.  
+
+---
+
+## 4. Ad, Cinsiyet ve Ülke Kolonlarını Birleştirme  
+
+```sql
+SELECT *, CONCAT_WS('-', Ad, Ulke, Cinsiyet) AS Bilgi
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Çalışanların **ad, ülke ve cinsiyet** bilgilerini **-** ile birleştirerek yeni bir sütun oluşturur.  
+
+---
+
+## 5. Cinsiyet Bazlı Maaş Ortalaması ve Kişi Sayısı  
+
+```sql
+SELECT cinsiyet, COUNT(*) AS kisi_sayisi, AVG(maas) AS ortalama_maas
+FROM KurumsalCalısanlar
+GROUP BY cinsiyet;
+```
+
+**Açıklama:**  
+Cinsiyet bazında çalışan sayılarını ve maaş ortalamalarını hesaplar.  
+
+---
+
+## 6. Maaş Kolonuna TL Sembolü Ekleyerek Gösterme  
+
+```sql
+SELECT *, FORMAT(Maas, 'C', 'TR-TR') AS Maas_TL
+FROM KurumsalCalısanlar;
+```
+
+**Açıklama:**  
+Maaş kolonunu **Türk Lirası (TL) sembolü** ile gösterir.  
+
+---
+
+## 7. ROLLUP ve CUBE Kullanımı ile Raporlama  
+
+### **Yöntem 1: Manuel UNION ALL Kullanımı**  
+
+```sql
+CREATE VIEW v_TumGruplamalar AS
+SELECT Ulke, Cinsiyet, SUM(MAAS) AS toplam_maas FROM KurumsalCalısanlar
+GROUP BY Ulke, Cinsiyet
+
+UNION ALL
+
+SELECT Ulke, '', SUM(MAAS) FROM KurumsalCalısanlar
+GROUP BY Ulke
+
+UNION ALL
+
+SELECT '', Cinsiyet, SUM(MAAS) FROM KurumsalCalısanlar
+GROUP BY Cinsiyet
+
+UNION ALL
+
+SELECT '', '', SUM(MAAS) FROM KurumsalCalısanlar;
+```
+
+**Yöntem 2: `CUBE` Kullanımı**  
+
+```sql
+SELECT ulke, cinsiyet, SUM(maas) AS toplam_maas
+FROM KurumsalCalısanlar
+GROUP BY CUBE(ulke, cinsiyet);
+```
+
+**Yöntem 3: `ROLLUP` Kullanımı**  
+
+```sql
+SELECT ulke, cinsiyet, SUM(maas) AS toplam_maas
+FROM KurumsalCalısanlar
+GROUP BY ROLLUP(ulke, cinsiyet);
+```
+
+**Açıklama:**  
+- `CUBE` tüm olası gruplamaları oluşturur.
+- `ROLLUP` daha az gruplama yaparak **azalan düzende toplama** sağlar.
+- Bu yapılar **raporlama** süreçlerinde **dip toplam** almak için kullanılır.  
+
+---
