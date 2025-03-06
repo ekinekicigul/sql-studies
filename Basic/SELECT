@@ -1172,3 +1172,116 @@ GROUP BY ROLLUP(ulke, cinsiyet);
 - Bu yapılar **raporlama** süreçlerinde **dip toplam** almak için kullanılır.  
 
 ---
+
+
+26.11.2024
+
+## 1. Veri Tabanındaki Yabancı Anahtarların Listelenmesi
+```sql
+SELECT 
+    fk.name AS foreign_key_name,
+    SCHEMA_NAME(fk.schema_id) AS schema_name,
+    OBJECT_NAME(fk.parent_object_id) AS foreign_table,
+    COL_NAME(fkc.parent_object_id, fkc.parent_column_id) AS foreign_column,
+    OBJECT_NAME(fk.referenced_object_id) AS primary_table,
+    COL_NAME(fkc.referenced_object_id, fkc.referenced_column_id) AS primary_column
+FROM sys.foreign_keys AS fk
+JOIN sys.foreign_key_columns AS fkc 
+    ON fk.object_id = fkc.constraint_object_id
+ORDER BY foreign_table, primary_table;
+```
+**Açıklama:**
+Bu sorgu, **veritabanındaki tüm yabancı anahtar ilişkilerini** listeleyerek **hangi tabloların hangi sütunlar üzerinden bağlandığını** gösterir.
+
+---
+
+## 2. JOIN İşlemlerine Giriş
+
+JOIN işlemleri, **Excel'deki VLOOKUP ve XLOOKUP** fonksiyonlarına benzer şekilde **iki tabloyu ortak bir sütun üzerinden birleştirmek için kullanılır**. 
+- **INNER JOIN**: Kesişmeyen verileri dışarıda bırakır.
+- **LEFT JOIN**: Soldaki (ilk belirtilen) tablodaki tüm verileri korur, sağdaki tabloda eşleşmeyenler **NULL** olarak döner.
+- **RIGHT JOIN**: Sağdaki tüm verileri korur, solda olmayanlar **NULL** olur.
+- **FULL JOIN**: Her iki tablodaki tüm verileri içerir.
+
+### 2.1. Çalışan Tablosu ile Departman Tablosunu Bağlama (LEFT JOIN Kullanımı)
+```sql
+SELECT A.*, B.DepartmantAdı 
+FROM OfisCalısan A 
+LEFT JOIN Departmanlar B 
+ON A.DeptID = B.DeptID
+WHERE DepartmantAdı LIKE 'IT';
+```
+**Açıklama:**
+Bu sorgu, **OfisCalısan** tablosundaki verileri **Departmanlar** tablosu ile **DeptID** üzerinden birleştirerek sadece **IT departmanında çalışanları** getirir.
+
+---
+
+## 3. Departman Bazında Çalışan Sayısı Hesaplama
+
+### 3.1. ChatGPT Yanıtı ile Departman Bazında Çalışan Sayısı
+```sql
+SELECT 
+    B.DepartmantAdı,
+    COUNT(A.CalısanID) AS KisiAdedi
+FROM OfisCalısan A
+LEFT JOIN Departmanlar B 
+ON A.DeptID = B.DeptID
+GROUP BY B.DepartmantAdı;
+```
+
+### 3.2. Alternatif Yöntem (Subquery Kullanımı)
+```sql
+SELECT DepartmantAdı, COUNT(ID) 
+FROM (
+    SELECT B.DepartmantAdı, A.CalısanID AS ID  
+    FROM OfisCalısan A 
+    LEFT JOIN Departmanlar B 
+    ON A.DeptID = B.DeptID
+) buse
+GROUP BY DepartmantAdı;
+```
+
+**Açıklama:**
+Bu sorgular, her departmanda kaç çalışanın olduğunu hesaplar. **İkinci yöntem (subquery kullanımı)** bazen daha esnek olabilir.
+
+---
+
+## 4. Üç Tablonun Birleştirilmesi (Çalışan - Departman - Yönetici)
+```sql
+SELECT A.*, B.DepartmantAdı, C.ManagerAdı 
+FROM OfisCalısan A 
+LEFT JOIN Departmanlar B ON A.DeptID = B.DeptID
+LEFT JOIN Manager C ON A.ManagerID = C.ManagerID;
+```
+**Açıklama:**
+Bu sorgu, **OfisCalısan** tablosunu **Departmanlar** ve **Manager** tabloları ile birleştirerek **çalışanların departman adlarını ve yöneticilerini** getirir.
+
+---
+
+## 5. Yönetici Adı Bazında Çalışan Sayısı Hesaplama
+
+### 5.1. Subquery Kullanımı (Daha Az Performanslı)
+```sql
+SELECT ManagerAdı, COUNT(Sicil_no) 
+FROM (
+    SELECT C.ManagerAdı, A.CalısanID AS Sicil_no 
+    FROM OfisCalısan A 
+    LEFT JOIN Departmanlar B ON A.DeptID = B.DeptID
+    LEFT JOIN Manager C ON A.ManagerID = C.ManagerID
+) eko
+GROUP BY ManagerAdı;
+```
+
+### 5.2. Daha Performanslı Yöntem
+```sql
+SELECT C.ManagerAdı, COUNT(A.CalısanID) 
+FROM OfisCalısan A 
+LEFT JOIN Departmanlar B ON A.DeptID = B.DeptID
+LEFT JOIN Manager C ON A.ManagerID = C.ManagerID
+GROUP BY C.ManagerAdı;
+```
+
+**Açıklama:**
+İkinci sorgu, **subquery kullanmadan** direkt **JOIN işlemi ile** grup bazlı hesaplama yaptığı için **daha performanslıdır**.
+
+---
