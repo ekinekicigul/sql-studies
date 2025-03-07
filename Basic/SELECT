@@ -1285,3 +1285,45 @@ GROUP BY C.ManagerAdı;
 İkinci sorgu, **subquery kullanmadan** direkt **JOIN işlemi ile** grup bazlı hesaplama yaptığı için **daha performanslıdır**.
 
 ---
+
+
+
+05.12.2024
+
+
+## 1. Performans
+
+### Index
+- **Include actual execution plan** kullanılarak sorguların nasıl çalıştığı analiz edilir.
+- **Table scan** ifadesi performans açısından kötü bir durumdur.
+- **Index**, tabloların daha verimli taranmasını sağlar ve sorgu hızını artırır.
+- **Non-clustered index**: Maaş sıralama işlemi ana tabloda gerçekleşmez.
+- **Clustered Index**: Primary key olan her tabloda otomatik olarak vardır, verinin fiziksel sıralamasını belirler.
+- `sp_helpindex` stored procedure’ü ile tabloda index olup olmadığı kontrol edilebilir.
+- **WHERE en çok kullanıldığı sütunlarda index oluşturmak mantıklıdır.**
+- Index kullanılmasına rağmen bazen SQL, **table scan** yapabilir.
+- **INDEX INCLUDE** özelliği ile **SELECT-FROM** arasına eklenen farklı kolonlar table scan yapmadan sorgulanabilir.
+
+### Performanslı Sorgu Yazımı
+- **Alt sorgular performans açısından önerilmez.**
+- **CASE WHEN yerine IIF kullanılması önerilir.**
+- **IN yerine EXISTS kullanımı daha performanslıdır.**
+- **DISTINCT yerine GROUP BY tercih edilmelidir.**
+- **TOP yerine OFFSET FETCH kullanılması önerilir.**
+- **LIKE kullanmaktan kaçınılmalı, mümkünse doğrudan = operatörü kullanılmalıdır.**
+- **COUNT(*) yerine COUNT(1) kullanılması önerilir.** COUNT(1), genellikle **primary key** sütununu saydığı için daha performanslıdır.
+- **Substring ile arama yapmak, LIKE kullanımına göre daha iyi performans gösterebilir.**
+
+---
+
+## 2. TRIGGER
+- **2 temel trigger çeşidi vardır.**
+- **Trigger’lar belirli olaylar gerçekleştiğinde otomatik çalışan prosedürlerdir.**
+
+---
+
+## 3. EXISTS Kullanımı
+- **JOIN yerine EXISTS kullanımı alternatif olabilir.**
+- **Correlated subquery**: Alt sorgunun dış tablodaki her bir ID için çalışmasını sağlar.
+- **EXISTS** ifadesi, **ilgili veri var mı?** anlamına gelir.
+- **NOT EXISTS** ile belirli bir koşulu sağlamayan veriler filtrelenebilir.
